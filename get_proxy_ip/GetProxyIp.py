@@ -1,6 +1,8 @@
+import json
+import time
+
 import requests
 from bs4 import BeautifulSoup
-import json
 
 base_url = 'https://www.xicidaili.com/nn/{}'
 checkUrl = 'http://httpbin.org/ip'
@@ -9,6 +11,11 @@ file_content = []
 for i in range(1, 6):
     # 获取请求结果
     resp = requests.get(url=base_url.format(i), headers=headers)
+    # 判断请求是否成功
+    if resp.status_code != requests.codes.ok:
+        print("get proxy list fail : %s" % resp.status_code)
+        time.sleep(10)
+        continue
     bsObj = BeautifulSoup(resp.text, 'html.parser')
     ipList = bsObj.find('table', {'id': 'ip_list'}).findAll('tr')
     # 去除表头
@@ -32,7 +39,8 @@ for i in range(1, 6):
                 print('proxy %s is invalid' % proxy)
         except Exception as e:
             print('proxy %s is invalid : %s' % (proxy, e))
-with open("proxies.txt", "w", encoding="utf-8") as f:
-    for line in file_content:
-        f.write(line + '\n')
+if len(file_content) > 0:
+    with open("proxies.txt", "w", encoding="utf-8") as f:
+        for line in file_content:
+            f.write(line + '\n')
 print('total: %s' % len(file_content))
